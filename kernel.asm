@@ -17,7 +17,7 @@ margem db '------------------------------------',0
 %define velocidade_inicial 1
 
 titulo	db	'TRAFFIC RACER', 0
-opcao1 	db	'1 - PLAY', 0jm
+opcao1 	db	'1 - PLAY', 0
 opcao2	db	'2 - INSTRUCTIONS', 0
 opcao3	db	'3 - CREDITS', 0
 
@@ -233,9 +233,6 @@ credits:
 	mov bl, 14
 	mov si, esc
 	call print_string
-	
-	mov ah, 0
-	int 16h ; teclado al-> recebe ASCII 
 
 	call instruction_wait
 	
@@ -305,9 +302,6 @@ intructions:
 	mov bl, 14
 	mov si, esc
 	call print_string
-	
-	mov ah, 0
-	int 16h ; teclado al-> recebe ASCII 
 
 	call instruction_wait
 
@@ -407,10 +401,18 @@ loop_game:
 
 		cmp al, 'w'
 		je .mover_cima
+		cmp al, 'W'
+		je .mover_cima
+		cmp ah, 0x48
+		je .mover_cima
 
 		cmp al, 's'
 		je .mover_baixo
-		
+		cmp al, 'S'
+		je .mover_baixo
+		cmp ah, 0x50
+		je .mover_baixo
+
 		jmp .controlar_carro
 
 	.mover_cima:

@@ -1,50 +1,44 @@
-#primeiro estágio
-boot1_file = boot1
+# Imagem de disquete: setor 1 = boot1, setor 2 = boot2, setor 3 em diante = kernel.
+# O boot2 le 20 setores (10 KiB) para 0x7E00; o teste abaixo falha se o kernel passar disso.
 
-#segundo estágio
-boot2_file = boot2
-boot2_pos = 1
-boot2_size = 1
+NASM      = nasm
+QEMU      = qemu-system-i386
 
-#kernel
-kernel_file = kernel
-kernel_pos = 2
-kernel_size = 20
+BOOT1     = boot1.bin
+BOOT2     = boot2.bin
+KERNEL    = kernel.bin
+DISK      = disk.img
 
-boot_disk = disk.img
-block_size = 512
-disk_size = 100
+BLOCK     = 512
+DISK_SECS = 100
+KERNEL_MAX = 10240
 
-nasm_flags = -f bin
-qemu_flags = -fda
+.PHONY: all disk run clean
 
-all: create_disk boot1_only boot2_only kernel_only write_boot1 write_boot2 write_kernel launch_qemu clean
+all: run
 
-create_disk:
-	@dd if=/dev/zero of=$(boot_disk) bs=$(block_size) count=$(disk_size) status=noxfer
+disk: $(DISK)
 
-boot1_only:
-	@nasm $(nasm_flags) $(boot1_file).asm -o $(boot1_file).bin
+$(BOOT1): boot1.asm
+	$(NASM) -f bin $< -o $@
 
-boot2_only:
-	@nasm $(nasm_flags) $(boot2_file).asm -o $(boot2_file).bin
+$(BOOT2): boot2.asm
+	$(NASM) -f bin $< -o $@
 
-kernel_only:
-	@nasm $(nasm_flags) $(kernel_file).asm -o $(kernel_file).bin
+$(KERNEL): kernel.asm sprite.asm
+	$(NASM) -f bin $< -o $@
 
-write_boot1:
-	@dd if=$(boot1_file).bin of=$(boot_disk) bs=$(block_size) count=1 conv=notrunc status=noxfer
+$(DISK): $(BOOT1) $(BOOT2) $(KERNEL)
+	@test $$(stat -c%s $(BOOT1)) -eq 512
+	@test $$(stat -c%s $(BOOT2)) -eq 512
+	@test $$(stat -c%s $(KERNEL)) -le $(KERNEL_MAX)
+	dd if=/dev/zero of=$(DISK) bs=$(BLOCK) count=$(DISK_SECS) status=none
+	dd if=$(BOOT1) of=$(DISK) bs=$(BLOCK) conv=notrunc status=none
+	dd if=$(BOOT2) of=$(DISK) bs=$(BLOCK) seek=1 conv=notrunc status=none
+	dd if=$(KERNEL) of=$(DISK) bs=$(BLOCK) seek=2 conv=notrunc status=none
 
-write_boot2:
-	@dd if=$(boot2_file).bin of=$(boot_disk) bs=$(block_size) seek=$(boot2_pos) count=$(boot2_size) conv=notrunc status=noxfer
-
-write_kernel:
-	@dd if=$(kernel_file).bin of=$(boot_disk) bs=$(block_size) seek=$(kernel_pos) count=$(kernel_size) conv=notrunc
-
-launch_qemu:
-	clear
-	@qemu-system-i386 $(qemu_flags) $(boot_disk)
+run: $(DISK)
+	$(QEMU) -boot a -drive file=$(DISK),format=raw,if=floppy
 
 clean:
-	@rm -f *.bin $(boot_disk) *~
-	clear
+	rm -f $(BOOT1) $(BOOT2) $(KERNEL) $(DISK)
