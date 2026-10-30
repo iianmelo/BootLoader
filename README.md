@@ -4,7 +4,7 @@ Bootloader de dois estágios em assembly x86. A BIOS sobe o primeiro setor, esse
 
 O jogo se chama Traffic Racer. Um carro vermelho fica na pista e cones vêm no sentido contrário. São três vidas. Se a pontuação passa de 2000, acaba a corrida.
 
-Feito na disciplina de Infraestrutura de Software do CIn-UFPE, período 2023.1. No centro essa cadeira é a IF677. O repositório foi publicado em 11 de agosto de 2023.
+Feito na disciplina de Infraestrutura de Software do CIn-UFPE, período 2023.1. No centro essa cadeira é a IF677.
 
 ## Telas
 
@@ -60,8 +60,3 @@ make run
 
 O QEMU abre uma janela. Dentro dela o teclado vai direto pro jogo.
 
-## Equipe
-
-O histórico deste repositório tem 7 commits, todos de Ian Melo, feitos em 11/08/2023. Foi um envio único, arquivo por arquivo, então 100% do que está no git está no nome dele.
-
-Na tela de créditos do jogo aparecem os logins `<raas>`, `<imm2>`, `<jvfr>` e `<hlpaa>`. O código não traz o nome completo dessas pessoas, e elas não aparecem no `git shortlog`.
